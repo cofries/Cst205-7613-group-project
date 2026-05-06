@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget
 
 from tabs.home import create_home_tab
 from tabs.mood import create_mood_tab
+from tabs.save import create_save_tab
 
 
 class MoodMemeStudio(QWidget):
@@ -38,6 +39,7 @@ class MoodMemeStudio(QWidget):
         tabs = QTabWidget()
         tabs.addTab(create_home_tab(), "Home")
         tabs.addTab(create_mood_tab(), "Mood Generator")
+        tabs.addTab(create_save_tab(), "Save")
 
         layout.addWidget(tabs)
         self.setLayout(layout)
