@@ -266,12 +266,18 @@ class PhotoEditor(QWidget):
     def reset_sliders(self):
         self.brightness_slider.blockSignals(True)
         self.contrast_slider.blockSignals(True)
+        self.horizontal_crop_slider.blockSignals(True)
+        self.vertical_crop_slider.blockSignals(True)
 
         self.brightness_slider.setValue(100)
         self.contrast_slider.setValue(100)
+        self.horizontal_crop_slider.setValue(0)
+        self.vertical_crop_slider.setValue(0)
 
         self.brightness_slider.blockSignals(False)
         self.contrast_slider.blockSignals(False)
+        self.horizontal_crop_slider(False)
+        self.vertical_crop_slider(False)
 
         self.brightness_label.setText("Brightness: 100%")
         self.contrast_label.setText("Contrast: 100%")
