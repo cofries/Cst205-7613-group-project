@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QFrame,
     QMessageBox,
+    QComboBox,
 )
 
 
@@ -47,6 +48,12 @@ class MemeGenerator(QWidget):
                 color: #d1d5db;
             }
 
+            QLabel#label {
+                color: #d1d5db;
+                font-size: 15px;
+                font-weight: bold;
+            }
+
             QFrame#card {
                 background-color: #1f2937;
                 border-radius: 18px;
@@ -66,7 +73,7 @@ class MemeGenerator(QWidget):
                 background-color: #db2777;
             }
 
-            QLineEdit {
+            QLineEdit, QComboBox {
                 background-color: #374151;
                 color: white;
                 border-radius: 10px;
@@ -83,14 +90,14 @@ class MemeGenerator(QWidget):
         """)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(50, 40, 50, 40)
-        layout.setSpacing(20)
+        layout.setContentsMargins(50, 30, 50, 30)
+        layout.setSpacing(14)
 
         title = QLabel("Meme Generator")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("Upload an image, randomize a caption, edit the text, and save your meme.")
+        subtitle = QLabel("Upload an image, customize the text, and save your meme.")
         subtitle.setObjectName("subtitle")
         subtitle.setAlignment(Qt.AlignCenter)
         subtitle.setWordWrap(True)
@@ -99,18 +106,37 @@ class MemeGenerator(QWidget):
         card.setObjectName("card")
 
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(18)
+        card_layout.setSpacing(12)
 
         self.preview = QLabel("Upload an image to start")
         self.preview.setObjectName("preview")
         self.preview.setAlignment(Qt.AlignCenter)
-        self.preview.setMinimumHeight(420)
+        self.preview.setFixedHeight(300)
 
         self.top_text_input = QLineEdit()
         self.top_text_input.setPlaceholderText("Top meme text")
 
         self.bottom_text_input = QLineEdit()
         self.bottom_text_input.setPlaceholderText("Bottom meme text")
+
+        options_row = QHBoxLayout()
+
+        font_size_label = QLabel("Font Size")
+        font_size_label.setObjectName("label")
+
+        self.font_size_dropdown = QComboBox()
+        self.font_size_dropdown.addItems(["Small", "Medium", "Large"])
+
+        font_color_label = QLabel("Font Color")
+        font_color_label.setObjectName("label")
+
+        self.font_color_dropdown = QComboBox()
+        self.font_color_dropdown.addItems(["White", "Pink", "Yellow", "Black"])
+
+        options_row.addWidget(font_size_label)
+        options_row.addWidget(self.font_size_dropdown)
+        options_row.addWidget(font_color_label)
+        options_row.addWidget(self.font_color_dropdown)
 
         button_row = QHBoxLayout()
 
@@ -134,6 +160,7 @@ class MemeGenerator(QWidget):
         card_layout.addWidget(self.preview)
         card_layout.addWidget(self.top_text_input)
         card_layout.addWidget(self.bottom_text_input)
+        card_layout.addLayout(options_row)
         card_layout.addLayout(button_row)
 
         card.setLayout(card_layout)
@@ -162,6 +189,28 @@ class MemeGenerator(QWidget):
         self.top_text_input.setText(top_text)
         self.bottom_text_input.setText(bottom_text)
 
+    def get_font_size(self, meme):
+        size_choice = self.font_size_dropdown.currentText()
+
+        if size_choice == "Small":
+            return max(20, meme.width // 16)
+        elif size_choice == "Large":
+            return max(36, meme.width // 8)
+        else:
+            return max(28, meme.width // 12)
+
+    def get_font_color(self):
+        color = self.font_color_dropdown.currentText()
+
+        if color == "Pink":
+            return "#ec4899"
+        elif color == "Yellow":
+            return "yellow"
+        elif color == "Black":
+            return "black"
+        else:
+            return "white"
+
     def generate_meme(self):
         if self.original_image is None:
             QMessageBox.warning(self, "No Image", "Please upload an image first.")
@@ -178,25 +227,26 @@ class MemeGenerator(QWidget):
         meme = self.original_image.copy()
         draw = ImageDraw.Draw(meme)
 
-        font_size = max(24, meme.width // 12)
+        font_size = self.get_font_size(meme)
+        font_color = self.get_font_color()
 
         try:
             font = ImageFont.truetype("impact.ttf", font_size)
         except:
             font = ImageFont.load_default()
 
-        self.draw_text(draw, meme, top_text, font, 25)
+        self.draw_text(draw, meme, top_text, font, 25, font_color)
 
         bottom_box = draw.textbbox((0, 0), bottom_text.upper(), font=font)
         bottom_height = bottom_box[3] - bottom_box[1]
         bottom_y = meme.height - bottom_height - 35
 
-        self.draw_text(draw, meme, bottom_text, font, bottom_y)
+        self.draw_text(draw, meme, bottom_text, font, bottom_y, font_color)
 
         self.final_image = meme
         self.show_image(meme)
 
-    def draw_text(self, draw, image, text, font, y):
+    def draw_text(self, draw, image, text, font, y, fill_color):
         text = text.upper()
 
         if text == "":
@@ -206,20 +256,24 @@ class MemeGenerator(QWidget):
         text_width = box[2] - box[0]
         x = (image.width - text_width) // 2
 
+        outline_color = "black"
+        if fill_color == "black":
+            outline_color = "white"
+
         for x_offset in range(-3, 4):
             for y_offset in range(-3, 4):
                 draw.text(
                     (x + x_offset, y + y_offset),
                     text,
                     font=font,
-                    fill="black"
+                    fill=outline_color
                 )
 
-        draw.text((x, y), text, font=font, fill="white")
+        draw.text((x, y), text, font=font, fill=fill_color)
 
     def show_image(self, pil_image):
         image = pil_image.copy()
-        image.thumbnail((700, 420))
+        image.thumbnail((500, 280))
 
         image_bytes = image.tobytes("raw", "RGB")
 
@@ -235,8 +289,8 @@ class MemeGenerator(QWidget):
 
         self.preview.setPixmap(
             pixmap.scaled(
-                700,
-                420,
+                500,
+                280,
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )

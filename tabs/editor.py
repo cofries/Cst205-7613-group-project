@@ -9,9 +9,10 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QMessageBox,
+    QSlider,
 )
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageEnhance
 
 final_img = Image.new("RGB", (500, 500), color=(255, 105, 180))
 
@@ -22,6 +23,7 @@ class PhotoEditor(QWidget):
 
         self.original_image = None
         self.current_image = None
+        self.filtered_image = None
 
         self.setStyleSheet("""
             QWidget {
@@ -67,6 +69,19 @@ class PhotoEditor(QWidget):
             QPushButton:hover {
                 background-color: #db2777;
             }
+
+            QSlider::groove:horizontal {
+                height: 8px;
+                background: #374151;
+                border-radius: 4px;
+            }
+
+            QSlider::handle:horizontal {
+                background: #ec4899;
+                width: 18px;
+                margin: -6px 0;
+                border-radius: 9px;
+            }
         """)
 
         layout = QVBoxLayout()
@@ -77,7 +92,7 @@ class PhotoEditor(QWidget):
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("Upload a photo and customize it with simple filters.")
+        subtitle = QLabel("Upload a photo and customize it with filters, brightness, and contrast.")
         subtitle.setObjectName("subtitle")
         subtitle.setAlignment(Qt.AlignCenter)
 
@@ -118,8 +133,27 @@ class PhotoEditor(QWidget):
         button_row.addWidget(reset_button)
         button_row.addWidget(save_button)
 
+        self.brightness_label = QLabel("Brightness: 100%")
+        self.brightness_slider = QSlider(Qt.Horizontal)
+        self.brightness_slider.setMinimum(50)
+        self.brightness_slider.setMaximum(150)
+        self.brightness_slider.setValue(100)
+        self.brightness_slider.valueChanged.connect(self.apply_adjustments)
+
+        self.contrast_label = QLabel("Contrast: 100%")
+        self.contrast_slider = QSlider(Qt.Horizontal)
+        self.contrast_slider.setMinimum(50)
+        self.contrast_slider.setMaximum(150)
+        self.contrast_slider.setValue(100)
+        self.contrast_slider.valueChanged.connect(self.apply_adjustments)
+
         card_layout.addWidget(self.preview)
         card_layout.addLayout(button_row)
+        card_layout.addWidget(self.brightness_label)
+        card_layout.addWidget(self.brightness_slider)
+        card_layout.addWidget(self.contrast_label)
+        card_layout.addWidget(self.contrast_slider)
+
         card.setLayout(card_layout)
 
         layout.addWidget(title)
@@ -138,7 +172,9 @@ class PhotoEditor(QWidget):
 
         if file_path:
             self.original_image = Image.open(file_path).convert("RGB")
+            self.filtered_image = self.original_image.copy()
             self.current_image = self.original_image.copy()
+            self.reset_sliders()
             self.update_final_image()
             self.show_image(self.current_image)
 
@@ -147,9 +183,8 @@ class PhotoEditor(QWidget):
             return
 
         gray = ImageOps.grayscale(self.current_image)
-        self.current_image = gray.convert("RGB")
-        self.update_final_image()
-        self.show_image(self.current_image)
+        self.filtered_image = gray.convert("RGB")
+        self.apply_adjustments()
 
     def apply_sepia(self):
         if not self.has_image():
@@ -172,15 +207,33 @@ class PhotoEditor(QWidget):
                     min(255, tb),
                 )
 
-        self.current_image = sepia_image
-        self.update_final_image()
-        self.show_image(self.current_image)
+        self.filtered_image = sepia_image
+        self.apply_adjustments()
 
     def rotate_image(self):
         if not self.has_image():
             return
 
         self.current_image = self.current_image.rotate(90, expand=True)
+        self.filtered_image = self.current_image.copy()
+        self.update_final_image()
+        self.show_image(self.current_image)
+
+    def apply_adjustments(self):
+        if self.filtered_image is None:
+            return
+
+        brightness_value = self.brightness_slider.value() / 100
+        contrast_value = self.contrast_slider.value() / 100
+
+        edited_image = ImageEnhance.Brightness(self.filtered_image).enhance(brightness_value)
+        edited_image = ImageEnhance.Contrast(edited_image).enhance(contrast_value)
+
+        self.current_image = edited_image
+
+        self.brightness_label.setText(f"Brightness: {self.brightness_slider.value()}%")
+        self.contrast_label.setText(f"Contrast: {self.contrast_slider.value()}%")
+
         self.update_final_image()
         self.show_image(self.current_image)
 
@@ -189,9 +242,24 @@ class PhotoEditor(QWidget):
             QMessageBox.warning(self, "No Image", "Please upload an image first.")
             return
 
+        self.filtered_image = self.original_image.copy()
         self.current_image = self.original_image.copy()
+        self.reset_sliders()
         self.update_final_image()
         self.show_image(self.current_image)
+
+    def reset_sliders(self):
+        self.brightness_slider.blockSignals(True)
+        self.contrast_slider.blockSignals(True)
+
+        self.brightness_slider.setValue(100)
+        self.contrast_slider.setValue(100)
+
+        self.brightness_slider.blockSignals(False)
+        self.contrast_slider.blockSignals(False)
+
+        self.brightness_label.setText("Brightness: 100%")
+        self.contrast_label.setText("Contrast: 100%")
 
     def save_image(self):
         if not self.has_image():
