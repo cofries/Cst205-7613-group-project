@@ -1,4 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PIL import Image
+
+final_img = Image.new("RGB", (500, 500), color=(255, 105, 180))
+
 
 def create_editor_tab():
     tab = QWidget()
@@ -12,8 +16,7 @@ def create_editor_tab():
 
     layout.addWidget(title)
     layout.addWidget(message)
+
     tab.setLayout(layout)
 
-    return tabfrom PIL import Image
-
-final_img = Image.new("RGB", (500, 500), color=(255, 105, 180))
+    return tab

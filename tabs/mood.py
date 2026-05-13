@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QFrame,
     QScrollArea,
+    QLineEdit,
 )
 
 from api.spotify_api import search_tracks_by_mood
@@ -28,7 +29,7 @@ class MoodMemeStudio(QWidget):
         self.songs = []
         self.current_meme = None
 
-        self.setWindowTitle("Mood Meme Studio ")
+        self.setWindowTitle("Mood Meme Studio")
         self.resize(1200, 900)
 
         self.setStyleSheet("""
@@ -56,7 +57,7 @@ class MoodMemeStudio(QWidget):
                 padding: 20px;
             }
 
-            QComboBox {
+            QComboBox, QLineEdit {
                 background-color: #374151;
                 color: white;
                 border-radius: 10px;
@@ -103,9 +104,10 @@ class MoodMemeStudio(QWidget):
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("Pick a mood, get a meme, and find matching Spotify songs.")
+        subtitle = QLabel("Pick a mood, use the weather, get a meme, and find matching Spotify songs.")
         subtitle.setObjectName("subtitle")
         subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setWordWrap(True)
 
         main_layout.addWidget(title)
         main_layout.addWidget(subtitle)
@@ -118,6 +120,17 @@ class MoodMemeStudio(QWidget):
         mood_label = QLabel("Choose a mood:")
         self.mood_dropdown = QComboBox()
         self.mood_dropdown.addItems(["Happy", "Sad", "Chill", "Workout", "Romantic", "Party"])
+
+        self.city_input = QLineEdit()
+        self.city_input.setPlaceholderText("Enter city for weather mood, example: Monterey")
+
+        self.weather_button = QPushButton("Use Weather to Pick Mood 🌤️")
+        self.weather_button.clicked.connect(self.fetch_weather_mood)
+
+        self.weather_result = QLabel("Weather mood suggestion will appear here.")
+        self.weather_result.setAlignment(Qt.AlignCenter)
+        self.weather_result.setWordWrap(True)
+        self.weather_result.setStyleSheet("color: #d1d5db; font-size: 15px;")
 
         self.meme_button = QPushButton("Get Meme 😂")
         self.meme_button.clicked.connect(self.fetch_meme)
@@ -138,6 +151,9 @@ class MoodMemeStudio(QWidget):
 
         card_layout.addWidget(mood_label)
         card_layout.addWidget(self.mood_dropdown)
+        card_layout.addWidget(self.city_input)
+        card_layout.addWidget(self.weather_button)
+        card_layout.addWidget(self.weather_result)
         card_layout.addWidget(self.meme_button)
         card_layout.addWidget(self.meme_title)
         card_layout.addWidget(self.meme_label)
@@ -163,6 +179,54 @@ class MoodMemeStudio(QWidget):
         outer_layout.addWidget(scroll_area)
 
         self.setLayout(outer_layout)
+
+    def fetch_weather_mood(self):
+        city = self.city_input.text().strip()
+
+        if city == "":
+            self.weather_result.setText("Please enter a city first.")
+            return
+
+        try:
+            url = f"https://wttr.in/{city}?format=j1"
+            response = requests.get(url, timeout=10)
+
+            if response.status_code != 200:
+                self.weather_result.setText("Could not load weather. Try another city.")
+                return
+
+            data = response.json()
+            current = data["current_condition"][0]
+            weather_text = current["weatherDesc"][0]["value"]
+            temperature = current["temp_F"]
+
+            suggested_mood = self.suggest_mood_from_weather(weather_text)
+
+            index = self.mood_dropdown.findText(suggested_mood)
+            if index >= 0:
+                self.mood_dropdown.setCurrentIndex(index)
+
+            self.weather_result.setText(
+                f"Weather in {city}: {weather_text}, {temperature}°F\n"
+                f"Suggested mood: {suggested_mood}"
+            )
+
+        except Exception:
+            self.weather_result.setText("Weather API error. Check internet or try another city.")
+
+    def suggest_mood_from_weather(self, weather_text):
+        weather_text = weather_text.lower()
+
+        if "rain" in weather_text or "drizzle" in weather_text or "storm" in weather_text:
+            return "Sad"
+        elif "sunny" in weather_text or "clear" in weather_text:
+            return "Happy"
+        elif "cloud" in weather_text or "mist" in weather_text or "fog" in weather_text:
+            return "Chill"
+        elif "snow" in weather_text:
+            return "Romantic"
+        else:
+            return "Party"
 
     def fetch_songs(self):
         mood = self.mood_dropdown.currentText()
