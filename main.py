@@ -1,3 +1,15 @@
+"""
+Course: CST 205 M/W 2-4 
+Title: Mood Meme Studio
+Abstract: A PySide6 multimedia desktop app for editing photos, creating memes,
+and generating mood-based music, weather, and meme suggestions through APIs.
+Authors: Silvia Pineda Jimenez, Teddy Santoyo, Conrad Fries Reuschling, Christopher Dlamini
+Class: CST205 M/W 2-4 
+Date: May 13 2026
+GitHub Repository: https://github.com/cofries/Cst205-7613-group-project
+"""
+
+
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget
 
