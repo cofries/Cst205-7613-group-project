@@ -149,12 +149,34 @@ class PhotoEditor(QWidget):
         self.contrast_slider.setValue(100)
         self.contrast_slider.valueChanged.connect(self.apply_adjustments)
 
+        self.horizontal_crop_label = QLabel("Horizontal Crop")
+        self.horizontal_crop_label.setStyleSheet("color: #ec95ed; font-weight: bold;")
+
+        self.horizontal_crop_slider = QSlider(Qt.Horizontal)
+        self.horizontal_crop_slider.setMinimum(0)
+        self.horizontal_crop_slider.setMaximum(100)
+        self.horizontal_crop_slider.setValue(0)
+        self.horizontal_crop_slider.valueChanged.connect(self.apply_adjustments)
+
+        self.vertical_crop_label = QLabel("Vertical Crop")
+        self.vertical_crop_label.setStyleSheet("color: #ec95ed; font-weight: bold;")
+
+        self.vertical_crop_slider = QSlider(Qt.Horizontal)
+        self.vertical_crop_slider.setMinimum(0)
+        self.vertical_crop_slider.setMaximum(100)
+        self.vertical_crop_slider.setValue(0)
+        self.vertical_crop_slider.valueChanged.connect(self.apply_adjustments)
+
         card_layout.addWidget(self.preview)
         card_layout.addLayout(button_row)
         card_layout.addWidget(self.brightness_label)
         card_layout.addWidget(self.brightness_slider)
         card_layout.addWidget(self.contrast_label)
         card_layout.addWidget(self.contrast_slider)
+        card_layout.addWidget(self.horizontal_crop_label)
+        card_layout.addWidget(self.horizontal_crop_slider)
+        card_layout.addWidget(self.vertical_crop_label)
+        card_layout.addWidget(self.vertical_crop_slider)
 
         card.setLayout(card_layout)
 
