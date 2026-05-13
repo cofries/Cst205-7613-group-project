@@ -38,11 +38,11 @@ def create_home_tab():
     instructions = QLabel("""
 What you can do in this app:
 
-• Pick a mood and get a random meme
-• Get Spotify song suggestions based on that same mood
-• Upload and edit your own photos
-• Add text to create your own meme
-• Save your final image as a PNG
+ - Pick a mood and get a random meme
+ - Get Spotify song suggestions based on that same mood
+ - Upload and edit your own photos
+ - Add text to create your own meme
+ - Save your final image as a PNG
 
 How to start:
 Use the Mood Generator tab to generate memes and songs.
