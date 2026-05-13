@@ -8,3 +8,5 @@ PySide6_Essentials==6.11.0
 requests==2.33.1
 shiboken6==6.11.0
 urllib3==2.6.3
+python-dotenv
+spotipy
