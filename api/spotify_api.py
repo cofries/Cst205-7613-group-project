@@ -83,11 +83,13 @@ def search_tracks_by_mood(mood):
         name = track["name"]
         artist = track["artists"][0]["name"]
         link = track["external_urls"]["spotify"]
+        preview_url = track.get("preview_url")
 
         results.append({
             "name": name,
             "artist": artist,
-            "url": link
+            "url": link,
+            "preview_url": preview_url
         })
 
     return results

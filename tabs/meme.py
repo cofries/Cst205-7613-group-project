@@ -5,16 +5,8 @@ from PIL import Image, ImageDraw, ImageFont
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QFileDialog,
-    QLineEdit,
-    QFrame,
-    QMessageBox,
-    QComboBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QFileDialog, QLineEdit, QFrame, QMessageBox, QComboBox,
 )
 
 
@@ -37,55 +29,69 @@ class MemeGenerator(QWidget):
         ]
 
         self.setStyleSheet("""
+            QWidget {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #181825, stop:0.5 #221b3a, stop:1 #2b1f45);
+                color: white;
+                font-family: Arial;
+                font-size: 16px;
+            }
+
+            QLabel { background-color: transparent; }
+
             QLabel#title {
-                font-size: 36px;
+                font-size: 38px;
                 font-weight: bold;
-                color: #f9fafb;
+                color: #ffffff;
             }
 
             QLabel#subtitle {
                 font-size: 18px;
-                color: #d1d5db;
+                color: #7dcff0;
             }
 
             QLabel#label {
-                color: #d1d5db;
+                color: #ec95ed;
                 font-size: 15px;
                 font-weight: bold;
             }
 
             QFrame#card {
-                background-color: #1f2937;
-                border-radius: 18px;
-                padding: 20px;
+                background-color: rgba(36, 27, 54, 0.92);
+                border: 2px solid #ec95ed;
+                border-radius: 26px;
+                padding: 24px;
             }
 
             QPushButton {
-                background-color: #ec4899;
+                background-color: #eb8ae4;
                 color: white;
-                border-radius: 12px;
-                padding: 14px;
-                font-size: 17px;
+                border-radius: 14px;
+                padding: 13px;
+                font-size: 16px;
                 font-weight: bold;
             }
 
             QPushButton:hover {
-                background-color: #db2777;
+                background-color: #7dcff0;
+                color: #181825;
             }
 
             QLineEdit, QComboBox {
-                background-color: #374151;
+                background-color: #2b1f45;
                 color: white;
-                border-radius: 10px;
+                border: 2px solid #7dcff0;
+                border-radius: 12px;
                 padding: 12px;
                 font-size: 16px;
             }
 
             QLabel#preview {
-                background-color: #111827;
-                border: 2px solid #374151;
-                border-radius: 14px;
+                background-color: #181825;
+                border: 2px solid #7dcff0;
+                border-radius: 16px;
                 padding: 10px;
+                color: #dbeafe;
             }
         """)
 
@@ -93,11 +99,11 @@ class MemeGenerator(QWidget):
         layout.setContentsMargins(50, 30, 50, 30)
         layout.setSpacing(14)
 
-        title = QLabel("Meme Generator")
+        title = QLabel("Meme Creator")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("Upload an image, customize the text, and save your meme.")
+        subtitle = QLabel("Upload an image, customize the caption style, and save your meme.")
         subtitle.setObjectName("subtitle")
         subtitle.setAlignment(Qt.AlignCenter)
         subtitle.setWordWrap(True)
@@ -120,6 +126,7 @@ class MemeGenerator(QWidget):
         self.bottom_text_input.setPlaceholderText("Bottom meme text")
 
         options_row = QHBoxLayout()
+        options_row.setSpacing(12)
 
         font_size_label = QLabel("Font Size")
         font_size_label.setObjectName("label")
@@ -131,7 +138,7 @@ class MemeGenerator(QWidget):
         font_color_label.setObjectName("label")
 
         self.font_color_dropdown = QComboBox()
-        self.font_color_dropdown.addItems(["White", "Pink", "Yellow", "Black"])
+        self.font_color_dropdown.addItems(["White", "Pink", "Yellow", "Black", "Blue"])
 
         options_row.addWidget(font_size_label)
         options_row.addWidget(self.font_size_dropdown)
@@ -139,17 +146,18 @@ class MemeGenerator(QWidget):
         options_row.addWidget(self.font_color_dropdown)
 
         button_row = QHBoxLayout()
+        button_row.setSpacing(10)
 
-        upload_button = QPushButton("Upload Image")
+        upload_button = QPushButton("Upload")
         upload_button.clicked.connect(self.upload_image)
 
-        random_button = QPushButton("Randomize Caption")
+        random_button = QPushButton("Random Caption")
         random_button.clicked.connect(self.randomize_caption)
 
-        generate_button = QPushButton("Generate Meme")
+        generate_button = QPushButton("Generate")
         generate_button.clicked.connect(self.generate_meme)
 
-        save_button = QPushButton("Save Meme")
+        save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_meme)
 
         button_row.addWidget(upload_button)
@@ -173,10 +181,7 @@ class MemeGenerator(QWidget):
 
     def upload_image(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Choose an image",
-            "",
-            "Image Files (*.png *.jpg *.jpeg)"
+            self, "Choose an image", "", "Image Files (*.png *.jpg *.jpeg)"
         )
 
         if file_path:
@@ -203,11 +208,13 @@ class MemeGenerator(QWidget):
         color = self.font_color_dropdown.currentText()
 
         if color == "Pink":
-            return "#ec4899"
+            return "#ec95ed"
         elif color == "Yellow":
             return "yellow"
         elif color == "Black":
             return "black"
+        elif color == "Blue":
+            return "#7dcff0"
         else:
             return "white"
 
@@ -232,7 +239,7 @@ class MemeGenerator(QWidget):
 
         try:
             font = ImageFont.truetype("impact.ttf", font_size)
-        except:
+        except Exception:
             font = ImageFont.load_default()
 
         self.draw_text(draw, meme, top_text, font, 25, font_color)
@@ -262,12 +269,7 @@ class MemeGenerator(QWidget):
 
         for x_offset in range(-3, 4):
             for y_offset in range(-3, 4):
-                draw.text(
-                    (x + x_offset, y + y_offset),
-                    text,
-                    font=font,
-                    fill=outline_color
-                )
+                draw.text((x + x_offset, y + y_offset), text, font=font, fill=outline_color)
 
         draw.text((x, y), text, font=font, fill=fill_color)
 
@@ -282,18 +284,13 @@ class MemeGenerator(QWidget):
             image.width,
             image.height,
             image.width * 3,
-            QImage.Format_RGB888
+            QImage.Format_RGB888,
         )
 
         pixmap = QPixmap.fromImage(qimage)
 
         self.preview.setPixmap(
-            pixmap.scaled(
-                500,
-                280,
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
-            )
+            pixmap.scaled(500, 280, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         )
 
     def save_meme(self):
@@ -302,10 +299,7 @@ class MemeGenerator(QWidget):
             return
 
         file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save meme",
-            "my_meme.png",
-            "PNG Image (*.png)"
+            self, "Save meme", "my_meme.png", "PNG Image (*.png)"
         )
 
         if file_path:

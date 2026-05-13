@@ -1,15 +1,8 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QFileDialog,
-    QFrame,
-    QMessageBox,
-    QSlider,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QFileDialog, QFrame, QMessageBox, QSlider,
 )
 
 from PIL import Image, ImageOps, ImageEnhance
@@ -27,66 +20,73 @@ class PhotoEditor(QWidget):
 
         self.setStyleSheet("""
             QWidget {
-                background-color: #111827;
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #181825, stop:0.5 #221b3a, stop:1 #2b1f45);
                 color: white;
                 font-family: Arial;
                 font-size: 16px;
             }
 
+            QLabel { background-color: transparent; }
+
             QLabel#title {
-                font-size: 34px;
+                font-size: 38px;
                 font-weight: bold;
-                color: #f9fafb;
+                color: #ffffff;
             }
 
             QLabel#subtitle {
-                font-size: 17px;
-                color: #d1d5db;
+                font-size: 18px;
+                color: #7dcff0;
             }
 
             QFrame#card {
-                background-color: #1f2937;
-                border-radius: 18px;
-                padding: 20px;
+                background-color: rgba(36, 27, 54, 0.92);
+                border: 2px solid #ec95ed;
+                border-radius: 26px;
+                padding: 24px;
             }
 
             QLabel#preview {
-                background-color: #111827;
-                border: 2px solid #374151;
-                border-radius: 14px;
+                background-color: #181825;
+                border: 2px solid #7dcff0;
+                border-radius: 16px;
                 padding: 10px;
+                color: #dbeafe;
             }
 
             QPushButton {
-                background-color: #ec4899;
+                background-color: #eb8ae4;
                 color: white;
-                border-radius: 12px;
+                border-radius: 14px;
                 padding: 13px;
                 font-size: 16px;
                 font-weight: bold;
             }
 
             QPushButton:hover {
-                background-color: #db2777;
+                background-color: #7dcff0;
+                color: #181825;
             }
 
             QSlider::groove:horizontal {
                 height: 8px;
-                background: #374151;
+                background: #2b1f45;
+                border: 1px solid #7dcff0;
                 border-radius: 4px;
             }
 
             QSlider::handle:horizontal {
-                background: #ec4899;
-                width: 18px;
-                margin: -6px 0;
-                border-radius: 9px;
+                background: #ec95ed;
+                width: 20px;
+                margin: -7px 0;
+                border-radius: 10px;
             }
         """)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(50, 40, 50, 40)
-        layout.setSpacing(20)
+        layout.setContentsMargins(50, 35, 50, 35)
+        layout.setSpacing(18)
 
         title = QLabel("Photo Editor")
         title.setObjectName("title")
@@ -98,17 +98,19 @@ class PhotoEditor(QWidget):
 
         card = QFrame()
         card.setObjectName("card")
+
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(18)
+        card_layout.setSpacing(16)
 
         self.preview = QLabel("Upload an image to start editing")
         self.preview.setObjectName("preview")
         self.preview.setAlignment(Qt.AlignCenter)
-        self.preview.setMinimumHeight(420)
+        self.preview.setMinimumHeight(360)
 
         button_row = QHBoxLayout()
+        button_row.setSpacing(10)
 
-        upload_button = QPushButton("Upload Image")
+        upload_button = QPushButton("Upload")
         upload_button.clicked.connect(self.upload_image)
 
         grayscale_button = QPushButton("Grayscale")
@@ -123,17 +125,15 @@ class PhotoEditor(QWidget):
         reset_button = QPushButton("Reset")
         reset_button.clicked.connect(self.reset_image)
 
-        save_button = QPushButton("Save Image")
+        save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_image)
 
-        button_row.addWidget(upload_button)
-        button_row.addWidget(grayscale_button)
-        button_row.addWidget(sepia_button)
-        button_row.addWidget(rotate_button)
-        button_row.addWidget(reset_button)
-        button_row.addWidget(save_button)
+        for button in [upload_button, grayscale_button, sepia_button, rotate_button, reset_button, save_button]:
+            button_row.addWidget(button)
 
         self.brightness_label = QLabel("Brightness: 100%")
+        self.brightness_label.setStyleSheet("color: #ec95ed; font-weight: bold;")
+
         self.brightness_slider = QSlider(Qt.Horizontal)
         self.brightness_slider.setMinimum(50)
         self.brightness_slider.setMaximum(150)
@@ -141,6 +141,8 @@ class PhotoEditor(QWidget):
         self.brightness_slider.valueChanged.connect(self.apply_adjustments)
 
         self.contrast_label = QLabel("Contrast: 100%")
+        self.contrast_label.setStyleSheet("color: #ec95ed; font-weight: bold;")
+
         self.contrast_slider = QSlider(Qt.Horizontal)
         self.contrast_slider.setMinimum(50)
         self.contrast_slider.setMaximum(150)
@@ -164,10 +166,7 @@ class PhotoEditor(QWidget):
 
     def upload_image(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Choose an image",
-            "",
-            "Image Files (*.png *.jpg *.jpeg)"
+            self, "Choose an image", "", "Image Files (*.png *.jpg *.jpeg)"
         )
 
         if file_path:
@@ -196,16 +195,11 @@ class PhotoEditor(QWidget):
         for y in range(sepia_image.height):
             for x in range(sepia_image.width):
                 r, g, b = pixels[x, y]
-
                 tr = int(0.393 * r + 0.769 * g + 0.189 * b)
                 tg = int(0.349 * r + 0.686 * g + 0.168 * b)
                 tb = int(0.272 * r + 0.534 * g + 0.131 * b)
 
-                pixels[x, y] = (
-                    min(255, tr),
-                    min(255, tg),
-                    min(255, tb),
-                )
+                pixels[x, y] = (min(255, tr), min(255, tg), min(255, tb))
 
         self.filtered_image = sepia_image
         self.apply_adjustments()
@@ -230,7 +224,6 @@ class PhotoEditor(QWidget):
         edited_image = ImageEnhance.Contrast(edited_image).enhance(contrast_value)
 
         self.current_image = edited_image
-
         self.brightness_label.setText(f"Brightness: {self.brightness_slider.value()}%")
         self.contrast_label.setText(f"Contrast: {self.contrast_slider.value()}%")
 
@@ -266,10 +259,7 @@ class PhotoEditor(QWidget):
             return
 
         file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save edited image",
-            "edited_image.png",
-            "PNG Image (*.png)"
+            self, "Save edited image", "edited_image.png", "PNG Image (*.png)"
         )
 
         if file_path:
@@ -283,7 +273,6 @@ class PhotoEditor(QWidget):
         if self.current_image is None:
             QMessageBox.warning(self, "No Image", "Please upload an image first.")
             return False
-
         return True
 
     def update_final_image(self):
@@ -292,7 +281,7 @@ class PhotoEditor(QWidget):
 
     def show_image(self, pil_image):
         image = pil_image.copy()
-        image.thumbnail((700, 420))
+        image.thumbnail((680, 360))
 
         image_bytes = image.tobytes("raw", "RGB")
 
@@ -301,18 +290,13 @@ class PhotoEditor(QWidget):
             image.width,
             image.height,
             image.width * 3,
-            QImage.Format_RGB888
+            QImage.Format_RGB888,
         )
 
         pixmap = QPixmap.fromImage(qimage)
 
         self.preview.setPixmap(
-            pixmap.scaled(
-                700,
-                420,
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
-            )
+            pixmap.scaled(680, 360, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         )
 
 

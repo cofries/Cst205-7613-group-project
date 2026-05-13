@@ -2,8 +2,9 @@ import sys
 import webbrowser
 import requests
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QPixmap
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -29,82 +30,109 @@ class MoodMemeStudio(QWidget):
         self.songs = []
         self.current_meme = None
 
+        self.audio_output = QAudioOutput()
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_output)
+        self.audio_output.setVolume(0.7)
+
         self.setWindowTitle("Mood Meme Studio")
         self.resize(1200, 900)
 
         self.setStyleSheet("""
             QWidget {
-                background-color: #111827;
+                background-color: qlineargradient(
+                    x1:0, y1:0,
+                    x2:1, y2:1,
+                    stop:0 #181825,
+                    stop:0.5 #221b3a,
+                    stop:1 #2b1f45
+                );
                 color: white;
                 font-family: Arial;
                 font-size: 16px;
             }
 
+            QLabel {
+                background-color: transparent;
+            }
+
             QLabel#title {
-                font-size: 36px;
+                font-size: 38px;
                 font-weight: bold;
                 color: #f9fafb;
             }
 
             QLabel#subtitle {
                 font-size: 18px;
-                color: #d1d5db;
+                color: #7dcff0;
+            }
+
+            QLabel#sectionLabel {
+                color: #ec95ed;
+                font-size: 17px;
+                font-weight: bold;
             }
 
             QFrame#card {
-                background-color: #1f2937;
-                border-radius: 18px;
-                padding: 20px;
+                background-color: rgba(36, 27, 54, 0.92);
+                border: 2px solid #ec95ed;
+                border-radius: 26px;
+                padding: 24px;
             }
 
             QComboBox, QLineEdit {
-                background-color: #374151;
+                background-color: #2b1f45;
                 color: white;
-                border-radius: 10px;
+                border: 2px solid #7dcff0;
+                border-radius: 12px;
                 padding: 12px;
                 font-size: 16px;
             }
 
             QPushButton {
-                background-color: #ec4899;
+                background-color: #eb8ae4;
                 color: white;
-                border-radius: 12px;
+                border-radius: 14px;
                 padding: 14px;
                 font-size: 17px;
                 font-weight: bold;
             }
 
             QPushButton:hover {
-                background-color: #db2777;
+                background-color: #7dcff0;
+                color: #181825;
             }
 
             QListWidget {
-                background-color: #111827;
-                border: 2px solid #374151;
-                border-radius: 14px;
+                background-color: #181825;
+                border: 2px solid #ec95ed;
+                border-radius: 16px;
                 padding: 10px;
                 min-height: 180px;
             }
 
             QListWidget::item {
+                background-color: #2b1f45;
+                color: #f9fafb;
                 padding: 14px;
-                border-bottom: 1px solid #374151;
+                margin: 5px;
+                border-radius: 10px;
             }
 
             QListWidget::item:hover {
-                background-color: #374151;
+                background-color: #40235f;
             }
         """)
 
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(50, 40, 50, 40)
-        main_layout.setSpacing(25)
+        main_layout.setContentsMargins(55, 35, 55, 35)
+        main_layout.setSpacing(22)
 
-        title = QLabel("Mood Meme Studio")
+        title = QLabel("Mood Generator")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("Pick a mood, use the weather, get a meme, and find matching Spotify songs.")
+        subtitle = QLabel("Use your mood or weather to find matching memes and Spotify songs.")
         subtitle.setObjectName("subtitle")
         subtitle.setAlignment(Qt.AlignCenter)
         subtitle.setWordWrap(True)
@@ -114,10 +142,13 @@ class MoodMemeStudio(QWidget):
 
         card = QFrame()
         card.setObjectName("card")
+
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(18)
+        card_layout.setSpacing(16)
 
         mood_label = QLabel("Choose a mood:")
+        mood_label.setObjectName("sectionLabel")
+
         self.mood_dropdown = QComboBox()
         self.mood_dropdown.addItems(["Happy", "Sad", "Chill", "Workout", "Romantic", "Party"])
 
@@ -130,7 +161,12 @@ class MoodMemeStudio(QWidget):
         self.weather_result = QLabel("Weather mood suggestion will appear here.")
         self.weather_result.setAlignment(Qt.AlignCenter)
         self.weather_result.setWordWrap(True)
-        self.weather_result.setStyleSheet("color: #d1d5db; font-size: 15px;")
+        self.weather_result.setStyleSheet("""
+            color: #7dcff0;
+            font-size: 15px;
+            font-weight: bold;
+            background-color: transparent;
+        """)
 
         self.meme_button = QPushButton("Get Meme 😂")
         self.meme_button.clicked.connect(self.fetch_meme)
@@ -138,16 +174,32 @@ class MoodMemeStudio(QWidget):
         self.meme_title = QLabel("Meme title will appear here")
         self.meme_title.setAlignment(Qt.AlignCenter)
         self.meme_title.setWordWrap(True)
+        self.meme_title.setStyleSheet("""
+            color: #f9fafb;
+            font-size: 17px;
+            font-weight: bold;
+            background-color: transparent;
+        """)
 
         self.meme_label = QLabel("Meme will appear here")
         self.meme_label.setAlignment(Qt.AlignCenter)
-        self.meme_label.setMinimumHeight(320)
+        self.meme_label.setMinimumHeight(300)
+        self.meme_label.setStyleSheet("""
+            background-color: #181825;
+            border: 2px solid #7dcff0;
+            border-radius: 16px;
+            padding: 10px;
+            color: #dbeafe;
+        """)
 
-        self.button = QPushButton("Get Spotify Song Suggestions 🎧")
-        self.button.clicked.connect(self.fetch_songs)
+        self.song_button = QPushButton("Get Spotify Song Suggestions 🎧")
+        self.song_button.clicked.connect(self.fetch_songs)
+
+        self.preview_button = QPushButton("▶️ Play Selected Song Preview")
+        self.preview_button.clicked.connect(self.play_song_preview)
 
         self.song_list = QListWidget()
-        self.song_list.itemClicked.connect(self.open_song)
+        self.song_list.itemDoubleClicked.connect(self.open_song)
 
         card_layout.addWidget(mood_label)
         card_layout.addWidget(self.mood_dropdown)
@@ -157,15 +209,21 @@ class MoodMemeStudio(QWidget):
         card_layout.addWidget(self.meme_button)
         card_layout.addWidget(self.meme_title)
         card_layout.addWidget(self.meme_label)
-        card_layout.addWidget(self.button)
+        card_layout.addWidget(self.song_button)
         card_layout.addWidget(self.song_list)
+        card_layout.addWidget(self.preview_button)  
 
         card.setLayout(card_layout)
         main_layout.addWidget(card)
 
-        footer = QLabel("Tip: Click a song to open it on Spotify.")
+        footer = QLabel("Tip: Select a song to preview it, or double-click a song to open it on Spotify.")
         footer.setAlignment(Qt.AlignCenter)
-        footer.setStyleSheet("color: #9ca3af; font-size: 14px;")
+        footer.setStyleSheet("""
+            color: #ec95ed;
+            font-size: 14px;
+            background-color: transparent;
+        """)
+
         main_layout.addWidget(footer)
 
         container = QWidget()
@@ -174,8 +232,15 @@ class MoodMemeStudio(QWidget):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setWidget(container)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+        """)
 
         outer_layout = QVBoxLayout()
+        outer_layout.setContentsMargins(0, 0, 0, 0)
         outer_layout.addWidget(scroll_area)
 
         self.setLayout(outer_layout)
@@ -241,8 +306,32 @@ class MoodMemeStudio(QWidget):
             return
 
         for song in self.songs:
-            display_text = f"🎵 {song['name']}\n   by {song['artist']}"
+            preview_text = "preview available" if song.get("preview_url") else "no preview"
+            display_text = f"🎵 {song['name']}\n   by {song['artist']} • {preview_text}"
             self.song_list.addItem(display_text)
+
+    def play_song_preview(self):
+        selected_item = self.song_list.currentItem()
+
+        if selected_item is None:
+            self.weather_result.setText("Select a song first, then click Play Song Preview.")
+            return
+
+        index = self.song_list.row(selected_item)
+
+        if index >= len(self.songs):
+            return
+
+        preview_url = self.songs[index].get("preview_url")
+
+        if not preview_url:
+            self.weather_result.setText("No Spotify preview available for this song. Try another one.")
+            return
+
+        self.player.setSource(QUrl(preview_url))
+        self.player.play()
+
+        self.weather_result.setText("Playing 30-second Spotify preview inside the app...")
 
     def open_song(self, item):
         index = self.song_list.row(item)
@@ -272,7 +361,7 @@ class MoodMemeStudio(QWidget):
         pixmap.loadFromData(response.content)
 
         self.meme_label.setPixmap(
-            pixmap.scaled(500, 320, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            pixmap.scaled(500, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         )
 
 
