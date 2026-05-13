@@ -14,4 +14,6 @@ def create_editor_tab():
     layout.addWidget(message)
     tab.setLayout(layout)
 
-    return tab
+    return tabfrom PIL import Image
+
+final_img = Image.new("RGB", (500, 500), color=(255, 105, 180))

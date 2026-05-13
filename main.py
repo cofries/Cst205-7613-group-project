@@ -5,6 +5,9 @@ from tabs.home import create_home_tab
 from tabs.mood import create_mood_tab
 from tabs.editor import create_editor_tab
 from tabs.meme import create_meme_tab
+from tabs.save import create_save_tab
+from tabs.meme import create_meme_tab
+
 
 class MoodMemeStudio(QWidget):
     def __init__(self):
@@ -41,6 +44,7 @@ class MoodMemeStudio(QWidget):
         tabs.addTab(create_mood_tab(), "Mood Generator")
         tabs.addTab(create_editor_tab(), "Photo Editor")
         tabs.addTab(create_meme_tab(), "Meme Creator")
+        tabs.addTab(create_save_tab(), "Save")
 
         layout.addWidget(tabs)
         self.setLayout(layout)
