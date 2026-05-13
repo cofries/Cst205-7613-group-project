@@ -244,6 +244,12 @@ class PhotoEditor(QWidget):
 
         edited_image = ImageEnhance.Brightness(self.filtered_image).enhance(brightness_value)
         edited_image = ImageEnhance.Contrast(edited_image).enhance(contrast_value)
+        
+        left_crop = edited_image.width / 200 * self.horizontal_crop_slider.value()
+        top_crop = edited_image.height / 200 * self.vertical_crop_slider.value()
+        right_crop = edited_image.width - left_crop
+        bottom_crop = edited_image.height - top_crop
+        edited_image = edited_image.crop((left_crop, top_crop, right_crop, bottom_crop))
 
         self.current_image = edited_image
         self.brightness_label.setText(f"Brightness: {self.brightness_slider.value()}%")
@@ -276,8 +282,8 @@ class PhotoEditor(QWidget):
 
         self.brightness_slider.blockSignals(False)
         self.contrast_slider.blockSignals(False)
-        self.horizontal_crop_slider(False)
-        self.vertical_crop_slider(False)
+        self.horizontal_crop_slider.blockSignals(False)
+        self.vertical_crop_slider.blockSignals(False)
 
         self.brightness_label.setText("Brightness: 100%")
         self.contrast_label.setText("Contrast: 100%")
