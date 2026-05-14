@@ -119,6 +119,15 @@ class PhotoEditor(QWidget):
         sepia_button = QPushButton("Sepia")
         sepia_button.clicked.connect(self.apply_sepia)
 
+        negative_button = QPushButton("Negative")
+        negative_button.clicked.connect(self.apply_negative)
+        
+        flip_button = QPushButton("Flip")
+        flip_button.clicked.connect(self.apply_flip)
+        
+        mirror_button = QPushButton("Mirror")
+        mirror_button.clicked.connect(self.apply_mirror)
+
         rotate_button = QPushButton("Rotate")
         rotate_button.clicked.connect(self.rotate_image)
 
@@ -128,7 +137,7 @@ class PhotoEditor(QWidget):
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_image)
 
-        for button in [upload_button, grayscale_button, sepia_button, rotate_button, reset_button, save_button]:
+        for button in [upload_button, grayscale_button, sepia_button, negative_button, flip_button, mirror_button, rotate_button, reset_button, save_button]:
             button_row.addWidget(button)
 
         self.brightness_label = QLabel("Brightness: 100%")
@@ -224,6 +233,27 @@ class PhotoEditor(QWidget):
                 pixels[x, y] = (min(255, tr), min(255, tg), min(255, tb))
 
         self.filtered_image = sepia_image
+        self.apply_adjustments()
+
+    def apply_negative(self):
+        if not self.has_image():
+            return
+        
+        self.filtered_image = ImageOps.invert(self.current_image)
+        self.apply_adjustments()
+
+    def apply_flip(self):
+        if not self.has_image():
+            return
+        
+        self.filtered_image = ImageOps.flip(self.current_image)
+        self.apply_adjustments()
+
+    def apply_mirror(self):
+        if not self.has_image():
+            return
+        
+        self.filtered_image = ImageOps.mirror(self.current_image)
         self.apply_adjustments()
 
     def rotate_image(self):
