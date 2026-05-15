@@ -1,4 +1,7 @@
 # Mood Meme Studio
+#Team 7613
+##Github link: https://github.com/cofries/Cst205-7613-group-project
+## Trello Link: https://trello.com/invite/b/69e9382f6de4581a66ca8b5c/ATTI763076b1993f31d9729997d9eaa121fe94B4A6B9/team7613
 
 Mood Meme Studio is a Python PySide6 desktop application that allows users to edit photos, generate memes, and discover mood-based music and weather suggestions through multiple API integrations.
 
