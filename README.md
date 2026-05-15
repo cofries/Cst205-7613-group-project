@@ -1,7 +1,27 @@
 # Mood Meme Studio
-#Team 7613
-##Github link: https://github.com/cofries/Cst205-7613-group-project
-## Trello Link: https://trello.com/invite/b/69e9382f6de4581a66ca8b5c/ATTI763076b1993f31d9729997d9eaa121fe94B4A6B9/team7613
+Course: CST 205 M/W 2-4 
+Title: Mood Meme Studio
+Abstract: A PySide6 multimedia desktop app for editing photos, creating memes,
+and generating mood-based music, weather, and meme suggestions through APIs.
+
+
+Authors: Silvia Pineda Jimenez, Teddy Santoyo, Conrad Fries Reuschling, Christopher Dlamini
+
+Class: CST205 M/W 2-4 
+Date: May 13 2026
+
+GitHub Repository: https://github.com/cofries/Cst205-7613-group-project
+Trello link : https://trello.com/invite/b/69e9382f6de4581a66ca8b5c/ATTI763076b1993f31d9729997d9eaa121fe94B4A6B9/team7613
+
+Chris: worked on the meme creation part of the project
+allowing users to upload an image and create/customize their own meme
+
+Teddy: worked on the save and dowload features for users to be able to save their memes directly to their devices.
+
+Conrad: worked on the filters page so users were able to apply filters and crop their memes.
+
+Silvia: worked on setting up the app with the API's to be able to load on the mood tab. Also created the app home page and banner.
+She also customized the layout of the app.
 
 Mood Meme Studio is a Python PySide6 desktop application that allows users to edit photos, generate memes, and discover mood-based music and weather suggestions through multiple API integrations.
 
